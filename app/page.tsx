@@ -1,65 +1,79 @@
-import Image from "next/image";
+import Link from "next/link";
+import ProductCard from "../components/ProductCard";
+
+// Menggunakan placeholder image yang lebih stabil (via Placehold.co) untuk development
+const DUMMY_PRODUCTS = [
+  {
+    id: "diora-shawl",
+    name: "Diora Shawl",
+    material: "Premium Chiffon",
+    price: 75000,
+    imageUrl: "https://placehold.co/600x800/e2e8f0/64748b?text=Diora+Shawl", 
+  },
+  {
+    id: "callie-instant",
+    name: "Callie Instant",
+    material: "Airy Flow",
+    price: 89000,
+    imageUrl: "https://placehold.co/600x800/e2e8f0/64748b?text=Callie+Instant",
+  },
+  {
+    id: "twilla-inner",
+    name: "Twilla Inner",
+    material: "Rayon Airflow",
+    price: 44000,
+    imageUrl: "https://placehold.co/600x800/e2e8f0/64748b?text=Twilla+Inner",
+  },
+  {
+    id: "premium-ceruty",
+    name: "Pashmina Malay",
+    material: "Premium Ceruty",
+    price: 65000,
+    imageUrl: "https://placehold.co/600x800/e2e8f0/64748b?text=Pashmina+Malay",
+  }
+];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="flex flex-col min-h-screen bg-[#FDFBF7]"> {/* Pastikan background global terang */}
+      
+      {/* 1. HERO BANNER SECTION */}
+      <section className="relative h-screen w-full overflow-hidden bg-neutral-900">
+        <img
+          src="https://images.unsplash.com/photo-1608748010899-18f300247112?q=80&w=1964&auto=format&fit=crop"
+          alt="RYV Studio Editorial Campaign"
+          className="h-full w-full object-cover object-center opacity-80" // Pakai opacity alih-alih brightness agar lebih stabil
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
+          <span className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-neutral-200">Now Available</span>
+          <h1 className="mb-6 font-serif text-4xl font-light tracking-wide sm:text-6xl md:text-7xl drop-shadow-md">Elegance in Every Drape.</h1>
+          <p className="mb-8 max-w-md text-sm font-light tracking-wide text-neutral-200 drop-shadow-md">Koleksi Pashmina premium yang dirancang khusus untuk kenyamanan dan keanggunan siluet harian Anda.</p>
+          <Link href="/shop" className="border border-white bg-white/10 px-8 py-3 text-xs font-medium uppercase tracking-widest text-white backdrop-blur-sm transition-all hover:bg-white hover:text-neutral-900">Explore The Collection</Link>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+      </section>
+
+      {/* 2. PRODUCT LIST SECTION */}
+      {/* Memaksa background putih tulang agar tidak terpengaruh dark mode browser/sistem */}
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 w-full bg-[#FDFBF7]">
+        <div className="flex flex-col items-center mb-12 text-center">
+          <h2 className="text-2xl font-serif tracking-wide text-neutral-900">The Bestsellers</h2>
+          <div className="mt-2 h-[1px] w-12 bg-neutral-300"></div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">
+          {DUMMY_PRODUCTS.map((product) => (
+            <ProductCard 
+              key={product.id}
+              id={product.id}
+              name={product.name}
+              material={product.material}
+              price={product.price}
+              imageUrl={product.imageUrl}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          ))}
         </div>
-      </main>
+      </section>
+
     </div>
   );
 }
