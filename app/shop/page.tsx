@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import ProductCard from "../../components/ProductCard";
-import { useSearchParams } from "next/navigation"; // 1. IMPORT INI
+import { useSearchParams } from "next/navigation";
 
 const CATEGORIES = ["All", "Pashmina", "Instant", "Inner"];
 const MATERIALS = ["All", "Premium Ceruty", "Premium Chiffon", "Rayon Airflow", "Airy Flow"];
 const SORT_OPTIONS = ["Featured", "Price: Low to High", "Price: High to Low"];
 
-export default function ShopPage() {
+// 1. KONTEN UTAMA KITA PINDAH KE DALAM FUNGSI INI
+function ShopContent() {
   const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -17,14 +18,12 @@ export default function ShopPage() {
   const [sortOption, setSortOption] = useState("Featured");
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
 
-  // 2. TANGKEP KATA KUNCI DARI URL (misal: ?q=ceruty)
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        // Asumsi API route lu narik semua produk dari Supabase
         const response = await fetch('/api/products'); 
         const data = await response.json();
         setProducts(data);
@@ -34,16 +33,13 @@ export default function ShopPage() {
         setIsLoading(false);
       }
     };
-
     fetchProducts();
   }, []);
 
-  // 3. TAMBAHIN LOGIKA SEARCH DI SINI
   const filteredProducts = products.filter(product => {
     const matchCategory = activeCategory === "All" || product.category === activeCategory;
     const matchMaterial = activeMaterial === "All" || product.material === activeMaterial;
     
-    // Mengecek apakah nama produk atau material mengandung kata kunci (Case Insensitive)
     const matchSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                         product.material.toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -58,11 +54,8 @@ export default function ShopPage() {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] pt-32 pb-20" style={{ colorScheme: 'light' }}>
-      
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 text-center border-b border-neutral-200/60">
         <h1 className="font-serif text-4xl font-light tracking-wide text-neutral-900 mb-4">Shop The Collection</h1>
-        
-        {/* 4. KASIH INDIKATOR KALAU LAGI NYARI BARANG */}
         {searchQuery ? (
           <p className="text-sm font-medium text-neutral-900 max-w-xl mx-auto">
             Showing results for "{searchQuery}"
@@ -81,7 +74,6 @@ export default function ShopPage() {
           {/* KOLOM KIRI: FILTER SIDEBAR */}
           <div className="w-full lg:w-64 flex-shrink-0">
             <div className="sticky top-28 space-y-10">
-              
               <div>
                 <h3 className="text-[11px] font-semibold uppercase tracking-widest text-neutral-900 mb-5">Category</h3>
                 <ul className="space-y-3 text-sm font-light text-neutral-500">
@@ -118,7 +110,6 @@ export default function ShopPage() {
                   ))}
                 </ul>
               </div>
-
             </div>
           </div>
 
@@ -135,11 +126,7 @@ export default function ShopPage() {
                   className="flex items-center space-x-2 text-[11px] font-semibold uppercase tracking-widest text-neutral-900 focus:outline-none hover:text-neutral-500 transition-colors"
                 >
                   <span>Sort By: {sortOption}</span>
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    className={`h-3 w-3 transition-transform duration-300 ${isSortDropdownOpen ? 'rotate-180' : ''}`} 
-                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-                  >
+                  <svg xmlns="http://www.w3.org/2000/svg" className={`h-3 w-3 transition-transform duration-300 ${isSortDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
@@ -153,9 +140,7 @@ export default function ShopPage() {
                           setSortOption(opt);
                           setIsSortDropdownOpen(false);
                         }}
-                        className={`block w-full text-left px-5 py-3 text-[10px] uppercase tracking-widest transition-colors hover:bg-neutral-50 ${
-                          sortOption === opt ? 'text-neutral-900 font-bold bg-neutral-50/50' : 'text-neutral-500'
-                        }`}
+                        className={`block w-full text-left px-5 py-3 text-[10px] uppercase tracking-widest transition-colors hover:bg-neutral-50 ${sortOption === opt ? 'text-neutral-900 font-bold bg-neutral-50/50' : 'text-neutral-500'}`}
                       >
                         {opt}
                       </button>
@@ -165,7 +150,6 @@ export default function ShopPage() {
               </div>
             </div>
 
-            {/* Tampilan saat masih Loading */}
             {isLoading ? (
               <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:grid-cols-3 lg:grid-cols-3 xl:gap-x-8">
                 {[0,1,2].map((skeleton) => (
@@ -186,7 +170,7 @@ export default function ShopPage() {
                     name={product.name}
                     material={product.material}
                     price={product.price}
-                    imageUrl={product.image_url} /* Disesuaikan dengan nama kolom di database */
+                    imageUrl={product.image_url}
                   />
                 ))}
               </div>
@@ -202,9 +186,17 @@ export default function ShopPage() {
               </div>
             )}
           </div>
-
         </div>
       </div>
     </div>
+  );
+}
+
+// 2. EXPORT FUNGSI UTAMA SEBAGAI WRAPPER SUSPENSE
+export default function ShopPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen pt-40 text-center text-neutral-500 font-light">Loading Catalog...</div>}>
+      <ShopContent />
+    </Suspense>
   );
 }

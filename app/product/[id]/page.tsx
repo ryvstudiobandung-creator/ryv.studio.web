@@ -53,7 +53,7 @@ export default function ProductDetailPage() {
       <div className="max-w-5xl mx-auto px-4 grid md:grid-cols-2 gap-12 lg:gap-20 items-start">
         
         {/* GAMBAR UTAMA (Dibuat Sticky biar mewah) */}
-        <div className="sticky top-32 aspect-[3/4] bg-neutral-100 overflow-hidden rounded-sm w-full">
+        <div className="md:sticky md:top-32 aspect-[3/4] bg-neutral-100 overflow-hidden rounded-sm w-full mb-8 md:mb-0 relative z-0">
            <img 
              src={selectedVariant?.image} 
              className="w-full h-full object-cover transition-opacity duration-300" 
