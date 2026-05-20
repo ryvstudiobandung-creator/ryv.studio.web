@@ -2,46 +2,54 @@
 
 import { useState, useEffect } from "react";
 import ProductCard from "../../components/ProductCard";
+import { useSearchParams } from "next/navigation"; // 1. IMPORT INI
 
 const CATEGORIES = ["All", "Pashmina", "Instant", "Inner"];
 const MATERIALS = ["All", "Premium Ceruty", "Premium Chiffon", "Rayon Airflow", "Airy Flow"];
 const SORT_OPTIONS = ["Featured", "Price: Low to High", "Price: High to Low"];
 
 export default function ShopPage() {
-  // 1. State baru untuk nampung data dari Database
   const [products, setProducts] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true); // Buat efek loading
+  const [isLoading, setIsLoading] = useState(true);
 
   const [activeCategory, setActiveCategory] = useState("All");
   const [activeMaterial, setActiveMaterial] = useState("All");
   const [sortOption, setSortOption] = useState("Featured");
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
 
-  // 2. Fungsi untuk narik data dari API pas halaman pertama kali dibuka
+  // 2. TANGKEP KATA KUNCI DARI URL (misal: ?q=ceruty)
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("q") || "";
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('/api/products');
+        // Asumsi API route lu narik semua produk dari Supabase
+        const response = await fetch('/api/products'); 
         const data = await response.json();
         setProducts(data);
       } catch (error) {
         console.error("Gagal narik data:", error);
       } finally {
-        setIsLoading(false); // Matiin loading kalau udah selesai (berhasil/gagal)
+        setIsLoading(false);
       }
     };
 
     fetchProducts();
   }, []);
 
-  // 3. Logika Filter (sekarang pakai state 'products' dari database)
+  // 3. TAMBAHIN LOGIKA SEARCH DI SINI
   const filteredProducts = products.filter(product => {
     const matchCategory = activeCategory === "All" || product.category === activeCategory;
     const matchMaterial = activeMaterial === "All" || product.material === activeMaterial;
-    return matchCategory && matchMaterial;
+    
+    // Mengecek apakah nama produk atau material mengandung kata kunci (Case Insensitive)
+    const matchSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                        product.material.toLowerCase().includes(searchQuery.toLowerCase());
+
+    return matchCategory && matchMaterial && matchSearch;
   });
 
-  // 4. Logika Sorting
   const sortedAndFilteredProducts = [...filteredProducts].sort((a, b) => {
     if (sortOption === "Price: Low to High") return a.price - b.price;
     if (sortOption === "Price: High to Low") return b.price - a.price;
@@ -53,9 +61,18 @@ export default function ShopPage() {
       
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 text-center border-b border-neutral-200/60">
         <h1 className="font-serif text-4xl font-light tracking-wide text-neutral-900 mb-4">Shop The Collection</h1>
-        <p className="text-sm font-light text-neutral-500 max-w-xl mx-auto">
-          Temukan siluet yang menyempurnakan gaya harian Anda. Filter berdasarkan tipe atau material untuk menemukan pasangan hijab terbaikmu.
-        </p>
+        
+        {/* 4. KASIH INDIKATOR KALAU LAGI NYARI BARANG */}
+        {searchQuery ? (
+          <p className="text-sm font-medium text-neutral-900 max-w-xl mx-auto">
+            Showing results for "{searchQuery}"
+            <a href="/shop" className="ml-3 text-[10px] uppercase tracking-widest text-neutral-400 hover:text-neutral-900 underline underline-offset-4">Clear Search</a>
+          </p>
+        ) : (
+          <p className="text-sm font-light text-neutral-500 max-w-xl mx-auto">
+            Temukan siluet yang menyempurnakan gaya harian Anda. Filter berdasarkan tipe atau material untuk menemukan pasangan hijab terbaikmu.
+          </p>
+        )}
       </div>
 
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">

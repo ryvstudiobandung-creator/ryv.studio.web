@@ -3,13 +3,20 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
-import { usePathname } from "next/navigation";
+// 1. IMPORT useRouter
+import { usePathname, useRouter } from "next/navigation"; 
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // 2. STATE UNTUK SEARCH
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  
   const { cartItems, toggleCart } = useCart();
   const pathname = usePathname();
+  const router = useRouter(); // 3. INISIALISASI ROUTER
 
   const totalItemsInCart = cartItems.reduce((total, item) => total + item.quantity, 0);
 
@@ -20,17 +27,19 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
+  // 4. FUNGSI UNTUK HANDLE SUBMIT SEARCH
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/shop?q=${encodeURIComponent(searchQuery)}`);
+      setIsSearchOpen(false);
+      setSearchQuery("");
     }
-  }, [isMobileMenuOpen]);
+  };
 
   const isHomepage = pathname === "/";
-  const useWhiteText = isHomepage && !isScrolled && !isMobileMenuOpen;
-
+  const useWhiteText = isHomepage && !isScrolled && !isMobileMenuOpen && !isSearchOpen;
+  
   const textColorClass = useWhiteText ? "text-white" : "text-neutral-900";
   const hoverColorClass = useWhiteText ? "hover:text-neutral-300" : "hover:text-neutral-500";
   const cartBadgeClass = useWhiteText ? "bg-white text-neutral-900" : "bg-neutral-900 text-white";
@@ -39,13 +48,13 @@ export default function Navbar() {
     <>
       <header 
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${
-          isScrolled || isMobileMenuOpen
+          isScrolled || isMobileMenuOpen || isSearchOpen // Pastikan background putih kalau search kebuka
             ? "bg-[#FDFBF7]/90 backdrop-blur-md border-neutral-200 py-3" 
             : "bg-transparent border-transparent py-5"
         }`}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          
+
           {/* KIRI: Navigasi Desktop (Lebih ringkas & padat) */}
           <nav className={`hidden space-x-8 text-[11px] font-semibold uppercase tracking-[0.15em] md:flex ${textColorClass}`}>
             <Link href="/shop" className={`transition-colors ${hoverColorClass}`}>Catalog</Link>
@@ -83,10 +92,12 @@ export default function Navbar() {
           </div>
 
           {/* KANAN: Ikon Utility */}
-          <div className={`flex items-center space-x-5 md:space-x-6 ${textColorClass}`}>
+          <div className={`flex items-center space-x-5 md:space-x-6 ${(isScrolled || isSearchOpen) ? "text-neutral-900" : textColorClass}`}>
+            
+            {/* 5. UBAH TOMBOL SEARCH INI */}
             <button 
               aria-label="Search" 
-              onClick={() => alert("Fitur Search akan segera hadir!")}
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
               className={`transition-colors ${hoverColorClass}`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-[18px] w-[18px]">
@@ -105,7 +116,21 @@ export default function Navbar() {
               )}
             </button>
           </div>
+        </div>
 
+        {/* 6. TAMBAHAN UI SEARCH BAR DROPDOWN (DI BAWAH HEADER) */}
+        <div className={`absolute top-full left-0 w-full bg-[#FDFBF7] border-b border-neutral-200 transition-all duration-300 overflow-hidden ${isSearchOpen ? 'max-h-24 py-4 opacity-100' : 'max-h-0 py-0 opacity-0 border-transparent'}`}>
+          <form onSubmit={handleSearch} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-neutral-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <input
+              type="text"
+              placeholder="Search products, materials, or categories..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-transparent text-sm text-neutral-900 focus:outline-none placeholder:text-neutral-400"
+            />
+            <button type="button" onClick={() => setIsSearchOpen(false)} className="ml-4 text-[10px] uppercase tracking-widest text-neutral-500 hover:text-neutral-900 transition-colors">Close</button>
+          </form>
         </div>
       </header>
 

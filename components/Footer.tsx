@@ -57,7 +57,7 @@ export default function Footer() {
           </p>
           <div className="flex space-x-6 text-xs text-neutral-500">
             <a href="https://www.instagram.com/ryv.studio_/" target="_blank" rel="noopener noreferrer" className="hover:text-neutral-900 transition-colors">Instagram</a>
-            <a href="#" className="hover:text-neutral-900 transition-colors">TikTok</a>
+            <a href="https://www.tiktok.com/@ryvstudio/" target="_blank" rel="noopener noreferrer" className="hover:text-neutral-900 transition-colors">TikTok</a>
           </div>
         </div>
 
