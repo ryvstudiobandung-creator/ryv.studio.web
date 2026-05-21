@@ -55,10 +55,10 @@ export default function ProductDetailPage() {
         {/* GAMBAR UTAMA (Dibuat Sticky biar mewah) */}
         <div className="md:sticky md:top-32 aspect-[3/4] bg-neutral-100 overflow-hidden rounded-sm w-full mb-8 md:mb-0 relative z-0">
            <img 
-             src={selectedVariant?.image} 
-             className="w-full h-full object-cover transition-opacity duration-300" 
-             alt={`${product.name} - ${selectedVariant?.name}`} 
-           />
+              src={selectedVariant?.image || product?.image_url || "/fallback-image.jpg"} 
+              className="w-full h-full object-cover transition-opacity duration-300" 
+              alt={`${product?.name} - ${selectedVariant?.name}`} 
+            />
         </div>
 
         {/* INFORMASI PRODUK */}

@@ -7,6 +7,9 @@ import Footer from "../components/Footer";
 import { CartProvider } from "../context/CartContext";
 import CartDrawer from "../components/CartDrawer";
 
+// 1. IMPORT ANALYTICS DI SINI
+import { Analytics } from "@vercel/analytics/react"; // Untuk Vercel Analytics
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -25,10 +28,16 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           <Navbar />
           <main className="flex-grow">{children}</main>
           <Footer />
-          
-          {/* PINDAHKAN DRAWER KE SINI (PALING BAWAH) */}
           <CartDrawer />
         </CartProvider>
+
+        {/* 2. TARUH KOMPONEN ANALYTICS DI PALING BAWAH (SEBELUM PENUTUP BODY) */}
+        
+        {/* Aktifkan ini untuk Vercel Analytics */}
+        <Analytics /> 
+
+        {/* Aktifkan ini untuk Google Analytics (Ganti tulisan G-XYZ dengan ID asli lu nanti) */}
+        {/* <GoogleAnalytics gaId="G-XYZ" /> */}
       </body>
     </html>
   );
