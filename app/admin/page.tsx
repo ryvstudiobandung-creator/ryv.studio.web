@@ -63,7 +63,7 @@ export default function AdminDashboard() {
       const safeOriginalName = file.name.replace(/\s+/g, '_');
       
       // Gabungkan waktu sekarang + nama asli file lu (contoh: 17094839-Diora_Chiffon.jpg)
-      const filePath = `${Date.now()}-${safeOriginalName}`;
+      const filePath = `${safeOriginalName}`;
 
       const { error: uploadError } = await supabase.storage.from('products').upload(filePath, file);
       
