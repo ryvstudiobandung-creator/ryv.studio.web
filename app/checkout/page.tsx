@@ -2,10 +2,11 @@
 
 import { useCart } from "../../context/CartContext";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function CheckoutPage() {
   const { cartItems, cartTotal } = useCart();
-
+  const router = useRouter();
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
   };
@@ -114,7 +115,7 @@ export default function CheckoutPage() {
               </div>
 
               <button 
-                onClick={() => alert("Proceeding to payment gateway...")}
+                onClick={() => router.push("/coming-soon")}
                 className="w-full bg-neutral-900 mt-8 py-4 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-neutral-800"
               >
                 Place Order

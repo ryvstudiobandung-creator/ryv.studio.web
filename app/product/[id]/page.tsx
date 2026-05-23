@@ -100,13 +100,29 @@ export default function ProductDetailPage() {
 
           {/* DESKRIPSI TAMBAHAN */}
           <div className="mt-12 space-y-6 border-t border-neutral-200 pt-8 text-sm font-light text-neutral-500 leading-relaxed">
-             <p>Didesain dengan material {product.material} yang jatuh sempurna, dan mudah dibentuk. Siluet elegan untuk kenyamanan sepanjang hari.</p>
-             <ul className="list-disc pl-5 space-y-1">
-               <li>Material: {product.material}</li>
-               <li>Finishing: Jahit tepi rapi standar butik</li>
-               <li>Warna foto mungkin sedikit berbeda karena pencahayaan</li>
-             </ul>
+            {/* Tampilkan paragraf dari DB, kalau kosong pakai teks default */}
+            <p>
+              {product.description?.paragraph || 
+               `Didesain dengan material ${product.material} yang jatuh sempurna, dan mudah dibentuk. Siluet elegan untuk kenyamanan sepanjang hari.`}
+            </p>
+            
+            <ul className="list-disc pl-5 space-y-1">
+              {/* Cek apakah ada bullets di DB dan jumlahnya lebih dari 0 */}
+              {product.description?.bullets && product.description.bullets.length > 0 ? (
+                product.description.bullets.map((bullet: string, idx: number) => (
+                  <li key={idx}>{bullet}</li>
+                ))
+              ) : (
+                /* Fallback kalau bullets di DB kosong */
+                <>
+                  <li>Material: {product.material}</li>
+                  <li>Finishing: Jahit tepi rapi standar butik</li>
+                  <li>Warna foto mungkin sedikit berbeda karena pencahayaan</li>
+                </>
+              )}
+            </ul>
           </div>
+
         </div>
       </div>
     </div>

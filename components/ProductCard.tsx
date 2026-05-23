@@ -8,6 +8,7 @@ export default function ProductCard({ id, name, material, price, imageUrl }: any
         <img 
           src={imageUrl || "/fallback-image.jpg"} // Fallback biar gak error kalau image kosong
           alt={name} 
+          loading="lazy"
           className="w-full h-full object-cover" 
         />
       </div>

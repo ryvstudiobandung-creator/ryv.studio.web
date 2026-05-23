@@ -13,8 +13,11 @@ import { Analytics } from "@vercel/analytics/react"; // Untuk Vercel Analytics
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "RYV.studio | Elevated Everyday Comfort",
-  description: "A modern hijab brand that embraces elegance through simplicity.",
+  title: "RYV.studio | Premium Essentials",
+  description: "Elegance in every drape. Temukan koleksi Pashmina premium pilihan untuk gaya harian Anda.",
+  openGraph: {
+    images: ['https://fcxczdweabcwcbrlfkyb.supabase.co/storage/v1/object/public/products/BANNER%20(1).png'],
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
