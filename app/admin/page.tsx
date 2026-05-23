@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 export default function AdminDashboard() {
   // --- STATES UMUM ---
-  const [activeTab, setActiveTab] = useState<"products" | "instagram">("products");
+  const [activeTab, setActiveTab] = useState<"products" | "instagram" | "hero">("products");
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
@@ -19,7 +19,7 @@ export default function AdminDashboard() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [isEditingProduct, setIsEditingProduct] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
-  const CATEGORY_OPTIONS = ["Pashmina", "Instant", "Inner"];
+  const CATEGORY_OPTIONS = [ "Pashmina", "Instant", "Inner" ];
 
   const defaultProductForm = { 
     id: "", name: "", category: "Pashmina", material: "", price: 0, image_url: "", color_variants: [],
@@ -32,6 +32,12 @@ export default function AdminDashboard() {
   const [isIgModalOpen, setIsIgModalOpen] = useState(false);
   const [isSavingIg, setIsSavingIg] = useState(false);
   const [igFormData, setIgFormData] = useState({ id: "", post_url: "" });
+
+  // --- STATES HERO SETTING ---
+  const [heroFormData, setHeroFormData] = useState({
+    id: 1, banner_image: "", subtitle: "", title: "", description: ""
+  });
+  const [isSavingHero, setIsSavingHero] = useState(false);
 
   // --- FUNGSI NOTIFIKASI & FETCH DATA ---
   const showNotification = (message: string, type: "success" | "error" = "success") => {
@@ -49,9 +55,16 @@ export default function AdminDashboard() {
     if (data) setIgFeeds(data);
   };
 
+  const fetchHeroSetting = async () => {
+    const { data } = await supabase.from('hero_settings').select('*').eq('id', 1).single();
+    if (data) {
+      setHeroFormData(data);
+    }
+  };
+
   const fetchAllData = async () => {
     setIsLoading(true);
-    await Promise.all([fetchProducts(), fetchIgFeeds()]);
+    await Promise.all([ fetchProducts(), fetchIgFeeds(), fetchHeroSetting() ]);
     setIsLoading(false);
   };
 
@@ -78,13 +91,11 @@ export default function AdminDashboard() {
     setIsSavingIg(true);
 
     if (igFormData.id) {
-      // Update
       const { error } = await supabase.from('instagram_feeds').update({ post_url: igFormData.post_url }).eq('id', igFormData.id);
       if (error) showNotification(`Gagal update IG: ${error.message}`, "error");
       else showNotification("Link IG berhasil diupdate!", "success");
     } else {
-      // Insert
-      const { error } = await supabase.from('instagram_feeds').insert([{ post_url: igFormData.post_url }]);
+      const { error } = await supabase.from('instagram_feeds').insert([ { post_url: igFormData.post_url } ]);
       if (error) showNotification(`Gagal tambah IG: ${error.message}`, "error");
       else showNotification("Link IG baru berhasil ditambahkan!", "success");
     }
@@ -105,7 +116,44 @@ export default function AdminDashboard() {
   };
 
   // ==========================================
-  // LOGIC PRODUK (Sama seperti sebelumnya)
+  // LOGIC HERO SETTING
+  // ==========================================
+  const handleHeroImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    setUploadingImage(true);
+    
+    const newUrl = await handleImageUpload(e.target.files[ 0 ]);
+    
+    if (newUrl) {
+      if (heroFormData.banner_image) await deleteOldImage(heroFormData.banner_image);
+      setHeroFormData((prev) => ({ ...prev, banner_image: newUrl }));
+    }
+    setUploadingImage(false);
+  };
+
+  const handleSaveHero = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingHero(true);
+    
+    const { error } = await supabase.from('hero_settings').upsert({
+      id: 1,
+      banner_image: heroFormData.banner_image,
+      subtitle: heroFormData.subtitle,
+      title: heroFormData.title,
+      description: heroFormData.description
+    });
+
+    if (error) {
+      showNotification(`Gagal update Hero: ${error.message}`, "error");
+    } else {
+      showNotification("Hero Banner berhasil diperbarui!", "success");
+    }
+    
+    setIsSavingHero(false);
+  };
+
+  // ==========================================
+  // LOGIC PRODUK
   // ==========================================
   const openAddProductModal = () => {
     setIsEditingProduct(false);
@@ -126,7 +174,7 @@ export default function AdminDashboard() {
   const handleImageUpload = async (file: File) => {
     try {
       const safeOriginalName = file.name.replace(/\s+/g, '_');
-      const filePath = `${Date.now()}_${safeOriginalName}`;
+      const filePath = `${safeOriginalName}`;
       const { error: uploadError } = await supabase.storage.from('products').upload(filePath, file);
       if (uploadError) throw uploadError;
       const { data } = supabase.storage.from('products').getPublicUrl(filePath);
@@ -141,7 +189,7 @@ export default function AdminDashboard() {
     if (!oldUrl || !oldUrl.includes('supabase.co')) return;
     try {
       const fileName = oldUrl.split('/').pop();
-      if (fileName) await supabase.storage.from('products').remove([fileName]);
+      if (fileName) await supabase.storage.from('products').remove([ fileName ]);
     } catch (error) {
       console.error("Error menghapus gambar:", error);
     }
@@ -151,7 +199,6 @@ export default function AdminDashboard() {
     if (!e.target.files || e.target.files.length === 0) return;
     setUploadingImage(true);
     
-    // Tambahkan [ 0 ] dengan spasi di sini
     const newUrl = await handleImageUpload(e.target.files[ 0 ]);
     
     if (newUrl) {
@@ -165,7 +212,6 @@ export default function AdminDashboard() {
     if (!e.target.files || e.target.files.length === 0) return;
     setUploadingImage(true);
     
-    // Tambahkan [ 0 ] dengan spasi di sini
     const newUrl = await handleImageUpload(e.target.files[ 0 ]);
     
     if (newUrl) {
@@ -182,7 +228,7 @@ export default function AdminDashboard() {
     setUploadingImage(false);
   };
 
-  const addVariant = () => setProductFormData((prev: any) => ({ ...prev, color_variants: [...prev.color_variants, { name: "", image: "" }] }));
+  const addVariant = () => setProductFormData((prev: any) => ({ ...prev, color_variants: [ ...prev.color_variants, { name: "", image: "" } ] }));
   const removeVariant = async (index: number) => {
     const variantToRemove = productFormData.color_variants[index];
     if (variantToRemove?.image) await deleteOldImage(variantToRemove.image);
@@ -207,7 +253,7 @@ export default function AdminDashboard() {
       else showNotification("Produk berhasil diupdate!", "success");
     } else {
       const newId = productFormData.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
-      const { error } = await supabase.from('products').insert([{ id: newId, ...payload }]);
+      const { error } = await supabase.from('products').insert([ { id: newId, ...payload } ]);
       if (error) showNotification(`Gagal menambah: ${error.message}`, "error");
       else showNotification("Produk ditambahkan!", "success");
     }
@@ -215,7 +261,6 @@ export default function AdminDashboard() {
     setIsProductModalOpen(false);
     fetchProducts();
   };
-
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] pt-32 pb-20 px-4 sm:px-6 lg:px-8">
@@ -231,18 +276,24 @@ export default function AdminDashboard() {
         </div>
 
         {/* TABS NAVIGATION */}
-        <div className="flex gap-8 border-b border-neutral-200 mb-8">
+        <div className="flex gap-8 border-b border-neutral-200 mb-8 overflow-x-auto pb-1">
           <button 
             onClick={() => setActiveTab("products")}
-            className={`pb-4 text-xs font-semibold uppercase tracking-widest transition-colors ${activeTab === "products" ? "text-neutral-900 border-b-2 border-neutral-900" : "text-neutral-400 hover:text-neutral-600"}`}
+            className={`pb-4 text-xs font-semibold uppercase tracking-widest transition-colors whitespace-nowrap ${activeTab === "products" ? "text-neutral-900 border-b-2 border-neutral-900" : "text-neutral-400 hover:text-neutral-600"}`}
           >
             Product Catalog
           </button>
           <button 
             onClick={() => setActiveTab("instagram")}
-            className={`pb-4 text-xs font-semibold uppercase tracking-widest transition-colors ${activeTab === "instagram" ? "text-neutral-900 border-b-2 border-neutral-900" : "text-neutral-400 hover:text-neutral-600"}`}
+            className={`pb-4 text-xs font-semibold uppercase tracking-widest transition-colors whitespace-nowrap ${activeTab === "instagram" ? "text-neutral-900 border-b-2 border-neutral-900" : "text-neutral-400 hover:text-neutral-600"}`}
           >
             Instagram Highlights
+          </button>
+          <button 
+            onClick={() => setActiveTab("hero")}
+            className={`pb-4 text-xs font-semibold uppercase tracking-widest transition-colors whitespace-nowrap ${activeTab === "hero" ? "text-neutral-900 border-b-2 border-neutral-900" : "text-neutral-400 hover:text-neutral-600"}`}
+          >
+            Hero Setting
           </button>
         </div>
 
@@ -330,6 +381,80 @@ export default function AdminDashboard() {
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ==================================================== */}
+        {/* TAB 3: HERO SETTING */}
+        {/* ==================================================== */}
+        {activeTab === "hero" && (
+          <div className="animate-in fade-in duration-500 max-w-3xl">
+            <div className="bg-white border border-neutral-200 rounded-sm shadow-sm p-8">
+              <h2 className="font-serif text-2xl text-neutral-900 mb-6 border-b border-neutral-200 pb-4">Hero Banner Content</h2>
+              
+              <form onSubmit={handleSaveHero} className="space-y-6">
+                <div>
+                  <label className="block text-[10px] font-semibold uppercase tracking-widest text-neutral-500 mb-3">Banner Image</label>
+                  <div className="flex flex-col gap-4">
+                    <div className="h-48 w-full bg-neutral-100 rounded-sm overflow-hidden border border-neutral-200">
+                      {heroFormData.banner_image ? (
+                        <img src={heroFormData.banner_image} alt="Hero Banner" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-neutral-400 text-xs">Belum ada gambar</div>
+                      )}
+                    </div>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleHeroImageChange} 
+                      className="text-xs text-neutral-500 file:mr-4 file:py-2 file:px-4 file:border file:border-neutral-200 file:text-xs file:bg-white file:text-neutral-700 hover:file:bg-neutral-50 transition-colors w-fit" 
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-semibold uppercase tracking-widest text-neutral-500 mb-2">Subtitle (Above Title)</label>
+                  <input 
+                    type="text" 
+                    value={heroFormData.subtitle} 
+                    onChange={(e) => setHeroFormData({...heroFormData, subtitle: e.target.value})} 
+                    className="w-full border-b border-neutral-300 bg-transparent py-2 text-sm text-neutral-900 focus:outline-none focus:border-neutral-900" 
+                    placeholder="e.g. Now Available" 
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-semibold uppercase tracking-widest text-neutral-500 mb-2">Main Title</label>
+                  <input 
+                    type="text" 
+                    value={heroFormData.title} 
+                    onChange={(e) => setHeroFormData({...heroFormData, title: e.target.value})} 
+                    className="w-full border-b border-neutral-300 bg-transparent py-2 text-sm text-neutral-900 focus:outline-none focus:border-neutral-900" 
+                    placeholder="e.g. Elegance in Every Drape." 
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-semibold uppercase tracking-widest text-neutral-500 mb-2">Description</label>
+                  <textarea 
+                    value={heroFormData.description} 
+                    onChange={(e) => setHeroFormData({...heroFormData, description: e.target.value})} 
+                    className="w-full border border-neutral-300 rounded-sm bg-transparent px-3 py-2 text-sm text-neutral-900 focus:outline-none focus:border-neutral-900 min-h-[100px]" 
+                    placeholder="Koleksi Pashmina premium yang dirancang khusus..." 
+                  />
+                </div>
+
+                <div className="pt-4 flex justify-end">
+                  <button 
+                    type="submit" 
+                    disabled={isSavingHero || uploadingImage} 
+                    className="px-8 py-3 text-xs font-semibold uppercase tracking-widest text-white bg-neutral-900 hover:bg-neutral-800 transition-colors disabled:bg-neutral-400"
+                  >
+                    {uploadingImage ? "Uploading..." : isSavingHero ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}
@@ -433,14 +558,14 @@ export default function AdminDashboard() {
                   <div>
                     <div className="flex justify-between items-center mb-2">
                       <label className="block text-[10px] font-semibold uppercase tracking-widest text-neutral-500">Detail Bullets (List)</label>
-                      <button type="button" onClick={() => setProductFormData({...productFormData, description: { ...productFormData.description, bullets: [...productFormData.description.bullets, ""] }})} className="text-[10px] font-medium uppercase text-blue-600 hover:text-blue-800">+ Add Bullet</button>
+                      <button type="button" onClick={() => setProductFormData({...productFormData, description: { ...productFormData.description, bullets: [ ...productFormData.description.bullets, "" ] }})} className="text-[10px] font-medium uppercase text-blue-600 hover:text-blue-800">+ Add Bullet</button>
                     </div>
                     <div className="space-y-2">
                       {productFormData.description.bullets.map((bullet: string, i: number) => (
                         <div key={i} className="flex gap-2 items-center">
                           <span className="text-neutral-400">•</span>
-                          <input type="text" value={bullet} onChange={(e) => { const newBullets = [...productFormData.description.bullets]; newBullets[i] = e.target.value; setProductFormData({...productFormData, description: { ...productFormData.description, bullets: newBullets }}); }} className="w-full border-b border-neutral-300 bg-transparent py-1 text-sm text-neutral-900 focus:outline-none focus:border-neutral-900" placeholder="e.g. Finishing: Jahit tepi rapi" />
-                          <button type="button" onClick={() => { const newBullets = [...productFormData.description.bullets]; newBullets.splice(i, 1); setProductFormData({...productFormData, description: { ...productFormData.description, bullets: newBullets }}); }} className="text-neutral-400 hover:text-red-500">✕</button>
+                          <input type="text" value={bullet} onChange={(e) => { const newBullets = [ ...productFormData.description.bullets ]; newBullets[i] = e.target.value; setProductFormData({...productFormData, description: { ...productFormData.description, bullets: newBullets }}); }} className="w-full border-b border-neutral-300 bg-transparent py-1 text-sm text-neutral-900 focus:outline-none focus:border-neutral-900" placeholder="e.g. Finishing: Jahit tepi rapi" />
+                          <button type="button" onClick={() => { const newBullets = [ ...productFormData.description.bullets ]; newBullets.splice(i, 1); setProductFormData({...productFormData, description: { ...productFormData.description, bullets: newBullets }}); }} className="text-neutral-400 hover:text-red-500">✕</button>
                         </div>
                       ))}
                     </div>
@@ -482,7 +607,9 @@ export default function AdminDashboard() {
 
       {/* CUSTOM NOTIFICATION MODAL */}
       {isMounted && (
-        <div className={`fixed top-10 left-1/2 -translate-x-1/2 z- transition-all duration-300 ${notification.isOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-10 pointer-events-none"}`}>
+        <div className={`fixed z- transition-all duration-300 
+          bottom-6 left-1/2 -translate-x-1/2 md:left-auto md:-translate-x-0 md:right-6 md:bottom-8 
+          ${notification.isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"}`}>
           <div className={`flex items-center space-x-3 px-6 py-4 shadow-lg border rounded-sm ${notification.type === 'success' ? 'bg-white border-green-200 text-neutral-900' : 'bg-white border-red-200 text-red-600'}`}>
             {notification.type === 'success' ? (
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>

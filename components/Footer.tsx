@@ -13,7 +13,7 @@ export default function Footer() {
           <div className="space-y-4">
             <h3 className="font-serif text-xl tracking-[0.1em] uppercase text-neutral-900">RYV.studio</h3>
             <p className="text-xs font-light text-neutral-500 leading-relaxed max-w-xs">
-              A modern hijab brand that embraces elegance through simplicity. Setiap helai dirancang khusus untuk kenyamanan dan kesempurnaan siluet harian Anda.
+              Where modern modesty meets understated elegance. Each hijab is delicately crafted to embrace your every day with comfort, grace, and a perfectly effortless silhouette.
             </p>
           </div>
 
@@ -38,7 +38,7 @@ export default function Footer() {
           {/* Kolom 4 */}
           <div className="space-y-4">
             <h4 className="text-[11px] font-semibold uppercase tracking-widest text-neutral-400">Our Marketplace</h4>
-            <p className="text-xs font-light text-neutral-500">Lebih nyaman bertransaksi lewat aplikasi favoritmu?</p>
+            <p className="text-xs font-light text-neutral-500">Do you find it more convenient to make transactions through your favorite app?</p>
             <a 
               href="https://shopee.co.id/ryv.studio" 
               target="_blank" 

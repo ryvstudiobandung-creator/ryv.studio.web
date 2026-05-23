@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import ProductCard from "../../components/ProductCard";
 import { useSearchParams } from "next/navigation";
+import { supabase } from "../../lib/supabase"; // Import Supabase-nya
 
 const CATEGORIES = ["All", "Pashmina", "Instant", "Inner"];
 const MATERIALS = ["All", "Premium Ceruty", "Premium Chiffon", "Rayon Airflow", "Airy Flow"];
@@ -24,9 +25,11 @@ function ShopContent() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('/api/products'); 
-        const data = await response.json();
-        setProducts(data);
+        // Tarik data langsung pakai Supabase Client biar aman
+        const { data, error } = await supabase.from('products').select('*');
+        
+        if (error) throw error;
+        if (data) setProducts(data);
       } catch (error) {
         console.error("Gagal narik data:", error);
       } finally {
@@ -152,7 +155,7 @@ function ShopContent() {
 
             {isLoading ? (
               <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:grid-cols-3 lg:grid-cols-3 xl:gap-x-8">
-                {[0,1,2].map((skeleton) => (
+                {[ 0, 1, 2 ].map((skeleton) => (
                   <div key={skeleton} className="animate-pulse flex flex-col">
                     <div className="aspect-[3/4] w-full bg-neutral-200 rounded-sm"></div>
                     <div className="mt-4 h-3 w-3/4 bg-neutral-200 rounded-sm"></div>
